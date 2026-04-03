@@ -1,0 +1,37 @@
+name: Python application static analysis
+
+on:
+  push:
+    # Добавлены обе ветки, чтобы экшен работал в любом случае
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Установка Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Установка линтера Flake8
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+
+    - name: Проверка качества кода (Статический анализ)
+      run: |
+        # Остановка при критических ошибках синтаксиса (E9, F63, F7, F82)
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        
+        # Предупреждения (статистика), которые не прерывают сборку (--exit-zero)
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
